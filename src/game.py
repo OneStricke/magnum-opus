@@ -1,6 +1,5 @@
 from src.physics import ObjectInSpace
 
-earth = ObjectInSpace(300, 400, 1, 0, 0)
 G = 10
 
 
@@ -10,6 +9,10 @@ def apply_gravity(movee: ObjectInSpace, mover: ObjectInSpace, dt):
     movee.y_vel += force_y / movee.mass
     movee.x_cog += movee.x_vel * dt
     movee.y_cog += movee.y_vel * dt
+
+
+def astr_click(x, y):
+    return ObjectInSpace(x, y, 2, -22, -15)
 
 # # Check impact
 # if earth.check_collision(asteroid.pos, asteroid.radius):
