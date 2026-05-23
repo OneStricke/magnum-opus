@@ -2,9 +2,8 @@ import pygame
 from src.game import apply_gravity
 from src.physics import ObjectInSpace
 
-earth = ObjectInSpace(300, 400, 100, 0, 0)
-asteroid = ObjectInSpace(700, 500, 1, 0, 0)
-G = 10
+earth = ObjectInSpace(300, 400, 1000, 0, 0)
+asteroid = ObjectInSpace(700, 500, 1, -5, -20)
 
 pygame.init()
 
@@ -19,7 +18,7 @@ done = False
 clock = pygame.time.Clock()
 
 while not done:
-    clock.tick(60)
+    dt = clock.tick(60) / 1000.0
 
     for event in pygame.event.get():  # User did something
         if event.type == pygame.QUIT:  # If user clicked close
@@ -29,8 +28,8 @@ while not done:
 
     pygame.draw.circle(screen, "blue", [earth.x_cog, earth.y_cog], 40)
     pygame.draw.circle(screen, "hotpink", [asteroid.x_cog, asteroid.y_cog], 20)
-    
-    apply_gravity(asteroid, earth, G)
+
+    apply_gravity(asteroid, earth, dt)
 
     pygame.display.flip()
 
