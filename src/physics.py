@@ -10,7 +10,16 @@ class ObjectInSpace:
         self.x_vel = x_vel
         self.y_vel = y_vel
 
-    def get_gravity_force(self, other, GRAVITATIONAL):
+    def get_gravity_force(self, other, GRAVITATIONAL: float):
+        """returns force towords the mover from the movee in two axces
+
+        Args:
+            other (ObjectInSpace): mover
+            GRAVITATIONAL (float): const
+
+        Returns:
+            tuple: (force_x, force_y) towords the movee
+        """
         dist_x = self.x_cog - other.x_cog
         dist_y = self.y_cog - other.y_cog
         dist_sq = (self.x_cog - other.x_cog)**2 + (self.y_cog - other.y_cog)**2
