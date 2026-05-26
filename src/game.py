@@ -1,20 +1,24 @@
 from src.physics import ObjectInSpace
+import pygame
 
-G = 10
+G = 100
 
 
 def apply_gravity(movee: ObjectInSpace, mover: ObjectInSpace, dt):
-    force_x, force_y = mover.get_gravity_force(movee, G)
-    movee.x_vel += force_x / movee.mass
-    movee.y_vel += force_y / movee.mass
-    movee.x_cog += movee.x_vel * dt
-    movee.y_cog += movee.y_vel * dt
+    if movee.movable:
+        force_x, force_y = mover.get_gravity_force(movee, G)
+        movee.x_vel += force_x / movee.mass * dt
+        movee.y_vel += force_y / movee.mass * dt
+        movee.x_cog += movee.x_vel * dt
+        movee.y_cog += movee.y_vel * dt
 
 
 def astr_click(x, y):
-    return ObjectInSpace(x, y, 2, -22, -15)
+    return ObjectInSpace(x, y, 10**(-14), -10, -10)
 
-# # Check impact
-# if earth.check_collision(asteroid.pos, asteroid.radius):
-#     # award points, trigger explosion, etc.
-#     pass
+
+def boom(astr, screen, font_size):
+    pygame.font.init()
+    boom_font = pygame.font.SysFont('Comic Sans MS', font_size)
+    surface = boom_font.render("BOOM!", False, 'Hotpink')
+    screen.blit(surface, (astr.x_cog-font_size*2.5, astr.y_cog-font_size/2))

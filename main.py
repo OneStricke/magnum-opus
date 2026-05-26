@@ -1,9 +1,10 @@
 import pygame
-from src.game import apply_gravity, astr_click
+from src.game import apply_gravity, astr_click, boom
 from src.physics import ObjectInSpace
 
-earth = ObjectInSpace(300, 400, 1000, 0, 0)
-# asteroid = ObjectInSpace(700, 500, 1, -5, -20)
+earth = ObjectInSpace(300, 400, 1000, 0, 0, False, 40)
+asteroids = []
+font_size = 1
 
 pygame.init()
 
@@ -23,24 +24,49 @@ while not done:
     dt = clock.tick(60) / 1000.0
 
     for event in pygame.event.get():  # User did something
-        
+
         if event.type == pygame.QUIT:  # If user clicked close
             done = True  # Flag that we are done so we exit this loop
-            
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             x_mou, y_mou = pygame.mouse.get_pos()
             if x_mou <= 200 and x_mou >= 150 and y_mou <= 30 and y_mou >= 10:
-                start = True 
+                start = not start
             else:
-                astr1 = astr_click(x_mou, y_mou)
+                asteroids.append(astr_click(x_mou, y_mou))
 
     screen.fill("white")
 
-    pygame.draw.circle(screen, "blue", [earth.x_cog, earth.y_cog], 40)
+    pygame.draw.circle(screen, "blue",
+                       [earth.x_cog, earth.y_cog],
+                       earth.radius)
 
     if start:
-        pygame.draw.circle(screen, "hotpink", [astr1.x_cog, astr1.y_cog], 2)
-        apply_gravity(astr1, earth, dt)
+        for asteroid in asteroids:
+            pygame.draw.circle(screen, "hotpink",
+                               [asteroid.x_cog, asteroid.y_cog],
+                               asteroid.radius)
+            apply_gravity(asteroid, earth, dt)
+            for asteroid_mover in asteroids:
+                if asteroid_mover is not asteroid:
+                    apply_gravity(asteroid, asteroid_mover, dt)
+
+            if asteroid.is_collided(earth):  # shit
+                if font_size != 0:
+                    boom(asteroid, screen, font_size)
+                    if not earth.movable:
+                        asteroid.movable = False
+                    asteroid.x_vel = 0
+                    asteroid.y_vel = 0
+                    font_size += 1
+                    if font_size >= 30:
+                        asteroids.remove(asteroid)
+                        font_size = 1
+
+    pygame.font.init()
+    font = pygame.font.SysFont('Calibri', 12)
+    surface = font.render(str(int(clock.get_fps())), False, 'dark green')
+    screen.blit(surface, (10, 10))
 
     pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
     pygame.display.flip()
