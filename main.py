@@ -2,7 +2,7 @@ import pygame
 from src.game import apply_gravity, astr_click, boom
 from src.physics import ObjectInSpace
 
-earth = ObjectInSpace(300, 400, 1000, 0, 0, False, 40)
+earth = ObjectInSpace(300, 400, 10**(14), 0, 0, False, 40)
 asteroids = []
 font_size = 1
 
@@ -21,7 +21,7 @@ done = False
 clock = pygame.time.Clock()
 
 while not done:
-    dt = clock.tick(60) / 1000.0
+    dt = clock.tick_busy_loop(60) / 1000.0  # tick(60)
 
     for event in pygame.event.get():  # User did something
 
@@ -62,6 +62,11 @@ while not done:
                     if font_size >= 30:
                         asteroids.remove(asteroid)
                         font_size = 1
+
+            out_of_x = asteroid.x_cog < -1000 or asteroid.x_cog > 1800
+            out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
+            if out_of_x or out_of_y:
+                asteroids.remove(asteroid)
 
     pygame.font.init()
     font = pygame.font.SysFont('Calibri', 12)

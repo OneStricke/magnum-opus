@@ -1,7 +1,7 @@
 from src.physics import ObjectInSpace
 import pygame
 
-G = 100
+G = 10**(-9)
 
 
 def apply_gravity(movee: ObjectInSpace, mover: ObjectInSpace, dt):
@@ -14,7 +14,7 @@ def apply_gravity(movee: ObjectInSpace, mover: ObjectInSpace, dt):
 
 
 def astr_click(x, y):
-    return ObjectInSpace(x, y, 10**(-14), -10, -10)
+    return ObjectInSpace(x, y, 1, 10, 0)
 
 
 def boom(astr, screen, font_size):
