@@ -1,5 +1,5 @@
 import pygame
-from src.game import apply_gravity, astr_click, boom
+from src.game import apply_gravity, astr_click, boom, apply_movement
 from src.physics import ObjectInSpace
 
 earth = ObjectInSpace(300, 400, 10**(14), 0, 0, False, 40)
@@ -50,6 +50,8 @@ while not done:
             for asteroid_mover in asteroids:
                 if asteroid_mover is not asteroid:
                     apply_gravity(asteroid, asteroid_mover, dt)
+
+            apply_movement(asteroid, dt)
 
             if asteroid.is_collided(earth):  # shit
                 if font_size != 0:
