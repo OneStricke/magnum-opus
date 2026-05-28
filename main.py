@@ -1,6 +1,7 @@
 import pygame
 from src.game import apply_gravity, astr_click, boom, apply_movement
-from src.physics import ObjectInSpace
+from src.physics import ObjectInSpace, QuadTree
+from src.game import G
 
 earth = ObjectInSpace(300, 400, 10**(14), 0, 0, False, 40)
 asteroids = []
@@ -41,33 +42,71 @@ while not done:
                        [earth.x_cog, earth.y_cog],
                        earth.radius)
 
+    # if start:
+    #     for asteroid in asteroids:
+    #         pygame.draw.circle(screen, "hotpink",
+    #                            [asteroid.x_cog, asteroid.y_cog],
+    #                            asteroid.radius)
+    #         apply_gravity(asteroid, earth, dt)
+    #         for asteroid_mover in asteroids:
+    #             if asteroid_mover is not asteroid:
+    #                 apply_gravity(asteroid, asteroid_mover, dt)
+
+    #         apply_movement(asteroid, dt)
+
+    #         if asteroid.is_collided(earth):  # shit
+    #             if font_size != 0:
+    #                 boom(asteroid, screen, font_size)
+    #                 if not earth.movable:
+    #                     asteroid.movable = False
+    #                 asteroid.x_vel = 0
+    #                 asteroid.y_vel = 0
+    #                 font_size += 1
+    #                 if font_size >= 30:
+    #                     asteroids.remove(asteroid)
+    #                     font_size = 1
+
+    #         out_of_x = asteroid.x_cog < -1000 or asteroid.x_cog > 1800
+    #         out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
+    #         if out_of_x or out_of_y:
+    #             asteroids.remove(asteroid)
+  
     if start:
+        tree = QuadTree(-1000, -1000, 2800, 2400)
         for asteroid in asteroids:
+            tree.insert(asteroid)
+
+        # 2. Apply all forces (no movement yet)
+        for asteroid in asteroids:
+            apply_gravity(asteroid, earth, dt)
+            fx, fy = tree.get_force(asteroid, G, theta=0.5)
+            asteroid.x_vel += fx / asteroid.mass * dt
+
+        # 3. Move + draw + collisions
+        to_remove = []
+        for asteroid in asteroids:
+            apply_movement(asteroid, dt)
             pygame.draw.circle(screen, "hotpink",
                                [asteroid.x_cog, asteroid.y_cog],
                                asteroid.radius)
-            apply_gravity(asteroid, earth, dt)
-            for asteroid_mover in asteroids:
-                if asteroid_mover is not asteroid:
-                    apply_gravity(asteroid, asteroid_mover, dt)
-
-            apply_movement(asteroid, dt)
-
-            if asteroid.is_collided(earth):  # shit
-                if font_size != 0:
-                    boom(asteroid, screen, font_size)
-                    if not earth.movable:
-                        asteroid.movable = False
-                    asteroid.x_vel = 0
-                    asteroid.y_vel = 0
-                    font_size += 1
-                    if font_size >= 30:
-                        asteroids.remove(asteroid)
-                        font_size = 1
-
+            if asteroid.is_collided(earth):
+                boom(asteroid, screen, font_size)
+                if not earth.movable:
+                    asteroid.movable = False
+                asteroid.x_vel = 0
+                asteroid.y_vel = 0
+                font_size += 1
+                if font_size >= 30:
+                    to_remove.append(asteroid)
+                    font_size = 1
             out_of_x = asteroid.x_cog < -1000 or asteroid.x_cog > 1800
             out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
             if out_of_x or out_of_y:
+                to_remove.append(asteroid)
+
+        # 4. Safe removal after iteration
+        for asteroid in to_remove:
+            if asteroid in asteroids:  # guard against double-remove
                 asteroids.remove(asteroid)
 
     pygame.font.init()

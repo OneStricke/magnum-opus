@@ -55,3 +55,92 @@ class ObjectInSpace:
             return True
         else:
             return False
+
+# inspired by https://github.com/alessialin/BarnesHut-py.git
+# shoud prolly split into diffrent files like original
+
+
+class QuadTree:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+        self.body = None
+        self.mass_center = None
+        self.subs = []
+
+    def in_bounds(self, obj):
+        return (self.x <= obj.x_cog < self.x + self.width and
+                self.y <= obj.y_cog < self.y + self.height)
+
+    def subdivide(self):
+        hw = self.width / 2
+        hh = self.height / 2
+        self.subs = [
+            QuadTree(self.x,      self.y,      hw, hh),  # NW
+            QuadTree(self.x + hw, self.y,      hw, hh),  # NE
+            QuadTree(self.x,      self.y + hh, hw, hh),  # SW
+            QuadTree(self.x + hw, self.y + hh, hw, hh)]  # SE
+
+    def get_sub(self, obj):
+        for sub in self.subs:
+            if sub.in_bounds(obj):
+                return sub
+        return None
+
+    def insert(self, obj):
+        if self.mass_center is None:
+            self.mass_center = obj
+        else:
+            self.mass_center = ObjectInSpace.sum_obj(self.mass_center, obj)
+
+        # Empty leaf
+        if self.body is None and self.subs is None:
+            self.body = obj
+            return
+
+        if self.subs is not None:
+            child = self.get_sub(obj)
+            if child:
+                child.insert(obj)
+            return
+
+        self.subdivide()
+
+        old = self.body
+        self.body = None
+
+        for o in (old, obj):
+            child = self.get_sub(o)
+            if child:
+                child.insert(o)
+
+    def get_force(self, obj, G, theta=0.5):
+        if self.mass_center is None:
+            return (0, 0)
+
+        if self.body is obj:
+            return (0, 0)
+
+        if self.subs is None:
+            if self.body is not None and self.body is not obj:
+                return self.body.get_gravity_force(obj, G)
+            return (0, 0)
+
+        s = self.width
+        d = obj.dist(self.mass_center)
+
+        if d == 0:
+            return (0, 0)
+
+        if s / d < theta:
+            return self.mass_center.get_gravity_force(obj, G)
+
+        fx, fy = 0, 0
+        for sub in self.subs:
+            sfx, sfy = sub.get_force(obj, G, theta)
+            fx += sfx
+            fy += sfy
+        return (fx, fy)
