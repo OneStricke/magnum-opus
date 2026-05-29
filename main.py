@@ -1,7 +1,7 @@
 import pygame
-from src.game import apply_gravity, astr_click, boom
-from src.game import apply_movement
-from src.physics import ObjectInSpace, QuadTree
+from src.game import astr_click, boom
+from src.game import apply_movement, array_grav
+from src.physics import ObjectInSpace
 import src.constants as const
 from src.settings import sett
 
@@ -48,14 +48,16 @@ while not done:
                        earth.radius)
 
     if start:
-        tree = QuadTree(-1000, -1000, 2800, 2400)
-        for asteroid in asteroids:
-            tree.insert(asteroid)
+        # tree = QuadTree(-1000, -1000, 2800, 2400)
+        # for asteroid in asteroids:
+        #     tree.insert(asteroid)
 
-        for asteroid in asteroids:
-            apply_gravity(asteroid, earth, dt)
-            fx, fy = tree.get_force(asteroid, const.G, theta=0.5)
-            asteroid.x_vel += fx / asteroid.mass * dt
+        # for asteroid in asteroids:
+        #     apply_gravity(asteroid, earth, dt)
+        #     fx, fy = tree.get_force(asteroid, const.G, theta=0.5)
+        #     asteroid.x_vel += fx / asteroid.mass * dt
+
+        array_grav(asteroids, earth, dt)
 
         to_remove = []
         for asteroid in asteroids:
@@ -99,6 +101,7 @@ while not done:
     # buttons
     pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
     pygame.draw.rect(screen, "red", [780, 0, 20, 20])
+
     pygame.display.flip()
 
 pygame.quit()
