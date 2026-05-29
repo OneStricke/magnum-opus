@@ -1,10 +1,11 @@
 import pygame
-from src.game import apply_gravity, astr_click, boom, apply_movement
+from src.game import apply_gravity, astr_click, boom
+from src.game import apply_movement
 from src.physics import ObjectInSpace, QuadTree
 import src.constants as const
 from src.settings import sett
 
-earth = ObjectInSpace(300, 400, 10**(14), 0, 0, False, 40)
+earth = ObjectInSpace(300, 400, 1e14, 0, 0, False, 40)
 asteroids = []
 font_size = 1
 
@@ -16,7 +17,7 @@ start = False
 size = [800, 600]
 screen = pygame.display.set_mode(size)
 
-pygame.display.set_caption("Example code for the draw module")
+pygame.display.set_caption("Magnum Opus")
 
 
 done = False
@@ -46,55 +47,24 @@ while not done:
                        [earth.x_cog, earth.y_cog],
                        earth.radius)
 
-    # if start:
-    #     for asteroid in asteroids:
-    #         pygame.draw.circle(screen, "hotpink",
-    #                            [asteroid.x_cog, asteroid.y_cog],
-    #                            asteroid.radius)
-    #         apply_gravity(asteroid, earth, dt)
-    #         for asteroid_mover in asteroids:
-    #             if asteroid_mover is not asteroid:
-    #                 apply_gravity(asteroid, asteroid_mover, dt)
-
-    #         apply_movement(asteroid, dt)
-
-    #         if asteroid.is_collided(earth):  # shit
-    #             if font_size != 0:
-    #                 boom(asteroid, screen, font_size)
-    #                 if not earth.movable:
-    #                     asteroid.movable = False
-    #                 asteroid.x_vel = 0
-    #                 asteroid.y_vel = 0
-    #                 font_size += 1
-    #                 if font_size >= 30:
-    #                     asteroids.remove(asteroid)
-    #                     font_size = 1
-
-    #         out_of_x = asteroid.x_cog < -1000 or asteroid.x_cog > 1800
-    #         out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
-    #         if out_of_x or out_of_y:
-    #             asteroids.remove(asteroid)
-
     if start:
         tree = QuadTree(-1000, -1000, 2800, 2400)
         for asteroid in asteroids:
             tree.insert(asteroid)
 
-        # 2. Apply all forces (no movement yet)
         for asteroid in asteroids:
             apply_gravity(asteroid, earth, dt)
             fx, fy = tree.get_force(asteroid, const.G, theta=0.5)
             asteroid.x_vel += fx / asteroid.mass * dt
 
-        # 3. Move + draw + collisions
         to_remove = []
         for asteroid in asteroids:
             apply_movement(asteroid, dt)
-            pygame.draw.circle(screen, "hotpink",
-                               [asteroid.x_cog, asteroid.y_cog],
-                               asteroid.radius)
+
+            # collision
             if asteroid.is_collided(earth):
-                boom(asteroid, screen, font_size)
+                if const.booming:
+                    boom(asteroid, screen, font_size)
                 if not earth.movable:
                     asteroid.movable = False
                 asteroid.x_vel = 0
@@ -103,21 +73,30 @@ while not done:
                 if font_size >= 30:
                     to_remove.append(asteroid)
                     font_size = 1
+
+            # deletion of far stuff
             out_of_x = asteroid.x_cog < -1000 or asteroid.x_cog > 1800
             out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
             if out_of_x or out_of_y:
                 to_remove.append(asteroid)
 
-        # 4. Safe removal after iteration
+        # correction of dealdly sin (deleting stuff from list while iterating)
         for asteroid in to_remove:
-            if asteroid in asteroids:  # guard against double-remove
+            if asteroid in asteroids:
                 asteroids.remove(asteroid)
 
+    for asteroid in asteroids:
+        pygame.draw.circle(screen, "hotpink",
+                           [asteroid.x_cog, asteroid.y_cog],
+                           asteroid.radius)
+
+    # fps
     pygame.font.init()
     font = pygame.font.SysFont('Calibri', 12)
     surface = font.render(str(int(clock.get_fps())), False, 'dark green')
     screen.blit(surface, (10, 10))
 
+    # buttons
     pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
     pygame.draw.rect(screen, "red", [780, 0, 20, 20])
     pygame.display.flip()

@@ -69,7 +69,7 @@ class QuadTree:
 
         self.body = None
         self.mass_center = None
-        self.subs = []
+        self.subs = None
 
     def in_bounds(self, obj):
         return (self.x <= obj.x_cog < self.x + self.width and

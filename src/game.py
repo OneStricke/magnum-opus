@@ -19,8 +19,8 @@ def apply_movement(movee, dt):
 def astr_click(x, y):
     return ObjectInSpace(x, y,
                          random.randint(int(const.min_astr_mass),
-                                        int(const.max_astr_mass))*1e11,
-                         40, 0)
+                                        int(const.max_astr_mass))*1e3,
+                         20, 0)
 
 
 def boom(astr, screen, font_size):
