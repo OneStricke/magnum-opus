@@ -1,7 +1,8 @@
 import pygame
 from src.game import apply_gravity, astr_click, boom, apply_movement
 from src.physics import ObjectInSpace, QuadTree
-from src.game import G
+import src.constants as const
+from src.settings import sett
 
 earth = ObjectInSpace(300, 400, 10**(14), 0, 0, False, 40)
 asteroids = []
@@ -33,6 +34,9 @@ while not done:
             x_mou, y_mou = pygame.mouse.get_pos()
             if x_mou <= 200 and x_mou >= 150 and y_mou <= 30 and y_mou >= 10:
                 start = not start
+            elif 780 <= x_mou <= 800 and 0 <= y_mou <= 20:
+                start = False
+                sett(screen)
             else:
                 asteroids.append(astr_click(x_mou, y_mou))
 
@@ -70,7 +74,7 @@ while not done:
     #         out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
     #         if out_of_x or out_of_y:
     #             asteroids.remove(asteroid)
-  
+
     if start:
         tree = QuadTree(-1000, -1000, 2800, 2400)
         for asteroid in asteroids:
@@ -79,7 +83,7 @@ while not done:
         # 2. Apply all forces (no movement yet)
         for asteroid in asteroids:
             apply_gravity(asteroid, earth, dt)
-            fx, fy = tree.get_force(asteroid, G, theta=0.5)
+            fx, fy = tree.get_force(asteroid, const.G, theta=0.5)
             asteroid.x_vel += fx / asteroid.mass * dt
 
         # 3. Move + draw + collisions
@@ -115,6 +119,7 @@ while not done:
     screen.blit(surface, (10, 10))
 
     pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
+    pygame.draw.rect(screen, "red", [780, 0, 20, 20])
     pygame.display.flip()
 
 pygame.quit()

@@ -5,7 +5,7 @@ class ObjectInSpace:
     """general physical object class"""
     def __init__(self, x_cog, y_cog,
                  mass, x_vel, y_vel,
-                 movable=True, radius=3):
+                 movable=True, radius=1):
         self.x_cog = x_cog
         self.y_cog = y_cog
         self.mass = mass
