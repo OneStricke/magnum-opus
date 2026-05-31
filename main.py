@@ -48,15 +48,6 @@ while not done:
                        earth.radius)
 
     if start:
-        # tree = QuadTree(-1000, -1000, 2800, 2400)
-        # for asteroid in asteroids:
-        #     tree.insert(asteroid)
-
-        # for asteroid in asteroids:
-        #     apply_gravity(asteroid, earth, dt)
-        #     fx, fy = tree.get_force(asteroid, const.G, theta=0.5)
-        #     asteroid.x_vel += fx / asteroid.mass * dt
-
         array_grav(asteroids, earth, dt)
 
         to_remove = []
@@ -97,6 +88,10 @@ while not done:
     font = pygame.font.SysFont('Calibri', 12)
     surface = font.render(str(int(clock.get_fps())), False, 'dark green')
     screen.blit(surface, (10, 10))
+
+    # amount of asteroids
+    surface1 = font.render(str(len(asteroids)), False, 'blue')
+    screen.blit(surface1, (700, 10))
 
     # buttons
     pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
