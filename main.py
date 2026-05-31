@@ -1,12 +1,11 @@
 import pygame
-from src.game import astr_click, boom
-from src.game import apply_movement, array_grav
+from src.logic import astr_click, pre_load
+from src.logic import start_cycle
 from src.physics import ObjectInSpace
-import src.constants as const
 from src.settings import sett
 
-earth = ObjectInSpace(300, 400, 1e14, 0, 0, False, 40)
 asteroids = []
+earth = ObjectInSpace(300, 400, 1e14, 0, 0, False, 40)
 font_size = 1
 
 pygame.init()
@@ -16,6 +15,8 @@ start = False
 # Set the height and width of the screen
 size = [800, 600]
 screen = pygame.display.set_mode(size)
+
+pre_load(earth, screen)
 
 pygame.display.set_caption("Magnum Opus")
 
@@ -48,35 +49,7 @@ while not done:
                        earth.radius)
 
     if start:
-        array_grav(asteroids, earth, dt)
-
-        to_remove = []
-        for asteroid in asteroids:
-            apply_movement(asteroid, dt)
-
-            # collision
-            if asteroid.is_collided(earth):
-                if const.booming:
-                    boom(asteroid, screen, font_size)
-                if not earth.movable:
-                    asteroid.movable = False
-                asteroid.x_vel = 0
-                asteroid.y_vel = 0
-                font_size += 1
-                if font_size >= 30:
-                    to_remove.append(asteroid)
-                    font_size = 1
-
-            # deletion of far stuff
-            out_of_x = asteroid.x_cog < -1000 or asteroid.x_cog > 1800
-            out_of_y = asteroid.y_cog < -1000 or asteroid.y_cog > 1400
-            if out_of_x or out_of_y:
-                to_remove.append(asteroid)
-
-        # correction of dealdly sin (deleting stuff from list while iterating)
-        for asteroid in to_remove:
-            if asteroid in asteroids:
-                asteroids.remove(asteroid)
+        font_size = start_cycle(asteroids, earth, dt, screen, font_size)
 
     for asteroid in asteroids:
         pygame.draw.circle(screen, "hotpink",
