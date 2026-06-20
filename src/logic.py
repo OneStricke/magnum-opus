@@ -1,6 +1,5 @@
 from src.physics import ObjectInSpace
 import pygame
-import random
 import src.constants as const
 import numpy as np
 from numba import jit
@@ -16,13 +15,6 @@ def apply_gravity(movee: ObjectInSpace, mover: ObjectInSpace, dt):
 def apply_movement(movee, dt):
     movee.x_cog += movee.x_vel * dt
     movee.y_cog += movee.y_vel * dt
-
-
-def astr_click(x, y):
-    return ObjectInSpace(x, y,
-                         random.randint(int(const.min_astr_mass),
-                                        int(const.max_astr_mass))*1e5,
-                         20, 0)
 
 
 def boom(astr, screen, font_size):
