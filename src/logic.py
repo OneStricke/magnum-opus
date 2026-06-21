@@ -68,8 +68,12 @@ def array_grav(asteroids, earth, dt):
     accel = math_earth(pos, mass, earth_pos, earth_mass, const.G)
     for i, a in enumerate(asteroids):
         if a.movable:
-            a.x_vel += accel[i, 0] * dt
-            a.y_vel += accel[i, 1] * dt
+            a.x_vel += float(accel[i, 0].real) * dt
+            a.y_vel += float(accel[i, 1].real) * dt
+            speed = math.sqrt(a.x_vel**2 + a.y_vel**2)
+            if speed > 10000:
+                a.x_vel = a.x_vel / speed * 10000
+                a.y_vel = a.y_vel / speed * 10000
 
     # asteroids
     diff_aa, dist_sq_aa = pos_to_dist(pos)
@@ -77,12 +81,17 @@ def array_grav(asteroids, earth, dt):
     accel_aa = dist_to_accel(dist_sq_aa, mass, diff_aa, const.G)
     for i, a in enumerate(asteroids):
         if a.movable:
-            a.x_vel += accel_aa[i, 0] * dt
-            a.y_vel += accel_aa[i, 1] * dt
+            a.x_vel += float(accel_aa[i, 0].real) * dt
+            a.y_vel += float(accel_aa[i, 1].real) * dt
+            speed = math.sqrt(a.x_vel**2 + a.y_vel**2)
+            if speed > 10000:
+                a.x_vel = a.x_vel / speed * 10000
+                a.y_vel = a.y_vel / speed * 10000
 
 
 def pre_load(earth, screen):
     astr = ObjectInSpace(200, 200, 1e5, 20, 0)
+    astr = ObjectInSpace(300, 400, 1e5, 0, 0)
     for i in range(60):
         screen.fill("white")
         pygame.font.init()
@@ -93,17 +102,23 @@ def pre_load(earth, screen):
         start_cycle([astr], earth, 16, screen, 1)
 
 
-def aoa(earth, asteroid):
-    dx = asteroid.x_cog - earth.x_cog
-    dy = asteroid.y_cog - earth.y_cog
+@jit(cache=True)
+def aoa_hood(earth_x, earth_y, astr_x, astr_y, astr_vx, astr_vy):
+    dx = astr_x - earth_x
+    dy = astr_y - earth_y
     dist = math.sqrt(dx*dx + dy*dy)
+    if dist == 0 or (astr_vx == 0 and astr_vy == 0):
+        return 0.0
     nx, ny = dx/dist, dy/dist
-    dot = asteroid.x_vel * nx + asteroid.y_vel * ny
-    speed = math.sqrt(asteroid.x_vel**2 + asteroid.y_vel**2)
-    if speed == 0:
-        return 0
-    angle = math.acos(max(-1, min(1, dot / speed)))
-    return math.degrees(angle)
+    speed = math.sqrt(astr_vx**2 + astr_vy**2)
+    dot = (astr_vx*nx + astr_vy*ny) / speed
+    return abs(math.degrees(math.asin(max(-1.0, min(1.0, dot)))))
+
+
+def aoa(earth, asteroid):
+    return aoa_hood(earth.x_cog, earth.y_cog,
+                    asteroid.x_cog, asteroid.y_cog,
+                    asteroid.x_vel, asteroid.y_vel)
 
 
 def start_cycle(asteroids, earth, dt, screen, font_size):
@@ -116,19 +131,24 @@ def start_cycle(asteroids, earth, dt, screen, font_size):
 
         # collision
         if asteroid.is_collided(earth):
+            if asteroid.movable:
+                speed = math.sqrt(asteroid.x_vel**2 + asteroid.y_vel**2)
+                angle = aoa(earth, asteroid)
+                if speed == 0:
+                    asteroid.pm = 0.1
+                else:
+                    speed_score = (math.sqrt(speed / 50)) ** 0.5
+                    angle_score = (1 - angle / 90) ** 0.5
+                    asteroid.pm *= speed_score * angle_score + 0.1
+                const.points += 100*asteroid.pm
+
             if const.booming:
                 boom(asteroid, screen, font_size)
             if not earth.movable:
                 asteroid.movable = False
-            speed = math.sqrt(asteroid.x_vel**2 + asteroid.y_vel**2)
-            print(speed, asteroid.x_vel, asteroid.y_vel)
-            angle = aoa(earth, asteroid)
-            impact = (math.exp(speed / 100)-1) ** 0.3 * (1 - angle / 90) ** 0.3
-            asteroid.pm *= impact
             asteroid.x_vel = 0
             asteroid.y_vel = 0
             font_size += 1
-            # print(asteroid.pm)
             if font_size >= 30:
                 to_remove.append(asteroid)
                 font_size = 1

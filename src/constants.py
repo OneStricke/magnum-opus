@@ -11,3 +11,6 @@ booming = True
 
 global fullscreen
 fullscreen = False
+
+global points
+points = 0

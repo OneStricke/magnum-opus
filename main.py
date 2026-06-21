@@ -1,7 +1,6 @@
 import pygame
 import os
-from src.logic import pre_load
-from src.logic import start_cycle
+from src.logic import pre_load, start_cycle
 from src.physics import ObjectInSpace
 from src.settings import sett
 import src.constants as const
@@ -118,7 +117,7 @@ while not done:
 
     # points
     font = pygame.font.SysFont('Calibri', 30)
-    surface = font.render(str(int(clock.get_fps())), False, 'red')
+    surface = font.render(str(int(const.points)), False, 'red')
     screen.blit(surface, (400, 550))
 
     # buttons
