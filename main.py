@@ -76,15 +76,18 @@ while not done:
             delt = math.sqrt(vx**2 + vy**2)
             point_mult -= 0.7 * (1 - math.exp(-delt / 150))
             for i in range(100):
-                asteroids.append(ObjectInSpace(
-                    drag_start[0] + random.randint(-5, 5),
-                    drag_start[1] + random.randint(-5, 5),
-                    random.randint(int(const.min_astr_mass),
-                                   int(const.max_astr_mass)) * 1e5,
-                    vx + random.randint(-2, 2),
-                    vy + random.randint(-2, 2),
-                    pm=point_mult,
-                    ))
+                dx = random.randint(-5, 5)
+                dy = random.randint(-5, 5)
+                if dx**2 + dy**2 <= 25:
+                    asteroids.append(ObjectInSpace(
+                        drag_start[0] + random.randint(-5, 5),
+                        drag_start[1] + random.randint(-5, 5),
+                        random.randint(int(const.min_astr_mass),
+                                       int(const.max_astr_mass)) * 1e5,
+                        vx + random.randint(-2, 2),
+                        vy + random.randint(-2, 2),
+                        pm=point_mult,
+                        ))
             drag_start = None
 
     screen.fill("black")
