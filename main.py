@@ -1,11 +1,12 @@
 import pygame
 import os
-from src.logic import pre_load
+from src.logic import pre_load, aoa
 from src.logic import start_cycle
 from src.physics import ObjectInSpace
 from src.settings import sett
 import src.constants as const
 import random
+import math
 
 
 def load_texture(name):
@@ -17,7 +18,7 @@ def load_texture(name):
 
 
 def draw_object(screen, obj, texture, color, fallback_radius=None):
-    x, y = int(obj.x_cog), int(obj.y_cog)
+    x, y = obj.x_cog, obj.y_cog
     r = fallback_radius if fallback_radius is not None else obj.radius
     if texture is not None:
         scaled = pygame.transform.smoothscale(texture, (r * 2, r * 2))
@@ -45,11 +46,14 @@ pygame.display.set_caption("Magnum Opus")
 
 # load raw textures once
 earth_tex = load_texture("earth")
+sett_tex = load_texture("settings")
+start_tex = load_texture("start")
 
 done = False
 clock = pygame.time.Clock()
 
 while not done:
+    point_mult = 1
     dt = clock.tick_busy_loop(60) / 1000.0  # tick(60)
 
     for event in pygame.event.get():  # User did something
@@ -70,6 +74,8 @@ while not done:
             x_mou, y_mou = pygame.mouse.get_pos()
             vx = (drag_start[0] - x_mou) * 0.5
             vy = (drag_start[1] - y_mou) * 0.5
+            delt = math.sqrt(vx**2 + vy**2)
+            point_mult -= 0.7 * (1 - math.exp(-delt / 150))
             for i in range(100):
                 asteroids.append(ObjectInSpace(
                     drag_start[0] + random.randint(-5, 5),
@@ -78,12 +84,14 @@ while not done:
                                    int(const.max_astr_mass)) * 1e5,
                     vx + random.randint(-2, 2),
                     vy + random.randint(-2, 2),
+                    pm=point_mult,
                     ))
             drag_start = None
 
-    screen.fill("grey")
+    screen.fill("black")
 
-    draw_object(screen, earth, earth_tex, "blue", earth.radius)
+    # no idea why i need + 8, but it's better
+    draw_object(screen, earth, earth_tex, "blue", earth.radius + 8)
 
     if start:
         font_size = start_cycle(asteroids, earth, dt, screen, font_size)
@@ -108,9 +116,23 @@ while not done:
     surface1 = font.render(str(len(asteroids)), False, 'blue')
     screen.blit(surface1, (700, 10))
 
+    # points
+    font = pygame.font.SysFont('Calibri', 30)
+    surface = font.render(str(int(clock.get_fps())), False, 'red')
+    screen.blit(surface, (400, 550))
+
     # buttons
-    pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
-    pygame.draw.rect(screen, "red", [780, 0, 20, 20])
+    if start_tex is not None:
+        screen.blit(pygame.transform.smoothscale(start_tex, (50, 20)),
+                    (150, 10))
+    else:
+        pygame.draw.rect(screen, (0, 0, 0), [150, 10, 50, 20])
+
+    if sett_tex is not None:
+        screen.blit(pygame.transform.smoothscale(sett_tex, (20, 20)),
+                    (780, 0))
+    else:
+        pygame.draw.rect(screen, "red", [780, 0, 20, 20])
 
     pygame.display.flip()
 

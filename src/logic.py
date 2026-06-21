@@ -3,6 +3,7 @@ import pygame
 import src.constants as const
 import numpy as np
 from numba import jit
+import math
 
 
 def apply_gravity(movee: ObjectInSpace, mover: ObjectInSpace, dt):
@@ -86,10 +87,23 @@ def pre_load(earth, screen):
         screen.fill("white")
         pygame.font.init()
         font = pygame.font.SysFont('Calibri', 100)
-        surface = font.render("Loadind...", False, 'hotpink')
+        surface = font.render("Loading...", False, 'hotpink')
         screen.blit(surface, (250, 250))
         pygame.display.flip()
         start_cycle([astr], earth, 16, screen, 1)
+
+
+def aoa(earth, asteroid):
+    dx = asteroid.x_cog - earth.x_cog
+    dy = asteroid.y_cog - earth.y_cog
+    dist = math.sqrt(dx*dx + dy*dy)
+    nx, ny = dx/dist, dy/dist
+    dot = asteroid.x_vel * nx + asteroid.y_vel * ny
+    speed = math.sqrt(asteroid.x_vel**2 + asteroid.y_vel**2)
+    if speed == 0:
+        return 0
+    angle = math.acos(max(-1, min(1, dot / speed)))
+    return math.degrees(angle)
 
 
 def start_cycle(asteroids, earth, dt, screen, font_size):
@@ -106,9 +120,15 @@ def start_cycle(asteroids, earth, dt, screen, font_size):
                 boom(asteroid, screen, font_size)
             if not earth.movable:
                 asteroid.movable = False
+            speed = math.sqrt(asteroid.x_vel**2 + asteroid.y_vel**2)
+            print(speed, asteroid.x_vel, asteroid.y_vel)
+            angle = aoa(earth, asteroid)
+            impact = (math.exp(speed / 100)-1) ** 0.3 * (1 - angle / 90) ** 0.3
+            asteroid.pm *= impact
             asteroid.x_vel = 0
             asteroid.y_vel = 0
             font_size += 1
+            # print(asteroid.pm)
             if font_size >= 30:
                 to_remove.append(asteroid)
                 font_size = 1
