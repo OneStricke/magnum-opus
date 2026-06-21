@@ -1,6 +1,6 @@
 import pygame
 import os
-from src.logic import pre_load, aoa
+from src.logic import pre_load
 from src.logic import start_cycle
 from src.physics import ObjectInSpace
 from src.settings import sett
